@@ -2,20 +2,29 @@ const container = document.querySelector('.container');
 
 // As if it is an array
 const seats = document.querySelectorAll('.row .seat:not(.occupied)');
-
 const count = document.getElementById('count');
 const total = document.getElementById('total');
-
 const movieSelect = document.getElementById('movie');
-
+populateUI();
 //_value inside the movie selected-- converted from st to number
 let ticketPrice = parseInt(movieSelect.value);
 
+////FUNCTIONS
+
+//save selected movie index and price
+function setMovieData(movieIndex, moviePrice) {
+	localStorage.setItem('selectedMovieIndex', movieIndex);
+	localStorage.setItem('selectedMoviePrice', moviePrice);
+}
 //updates total and count
 function updateSelectedCount() {
 	const selectedSeats = document.querySelectorAll('.row  .seat.selected');
-	// console.log(selectedSeats);
 	// NodeList(2)[(div.seat.selected, div.seat.selected)];
+	//*Local Storage: 1.copy selected seats into array- 2.map through array- 3,return new array with indexes//1. Copy selected seats into array: Spread operator--converts the nodelist into array-->returns array with selected seats number
+	const seatsIndex = [...selectedSeats].map((seat) => [...seats].indexOf(seat));
+
+	//?	localstorage-- returns string so we need to use stringigy
+	localStorage.setItem('selectedSeats', JSON.stringify(seatsIndex));
 
 	const selectedSeatsCount = selectedSeats.length;
 	// console.log(selectedSeatsCount);
@@ -23,12 +32,32 @@ function updateSelectedCount() {
 	total.innerText = selectedSeatsCount * ticketPrice;
 }
 
-// console.log(type of ticketPrice);
+//!GET DATA FROM LOCALSTORAGE AND POPULARATE UI--> get item--> jparse-->back to array
+
+function populateUI() {
+	const selectedSeats = JSON.parse(localStorage.getItem('selectedSeats'));
+	// console.log(selectedSeats);
+	//check if we have something in selected seats
+
+	if (selectedSeats !== null && selectedSeats.lenght > 0) {
+		seats.forEach((seat, index) => {
+			if (selectedSeats.indexOf(index) > -1) {
+				seat.classList.add('selected');
+			}
+		});
+	}
+	const selectedMovieIndex = localStorage.getItem('selectedMovieIndex');
+
+	if (selectedMovieIndex != null) {
+		movieSelect.selectedIndex = selectedMovieIndex;
+	}
+}
 
 //! MOVIE SELECT EVENT
-
 movieSelect.addEventListener('change', (e) => {
 	ticketPrice = parseInt(e.target.value);
+
+	setMovieData(e.target.selectedIndex, e.target.value);
 	updateSelectedCount();
 });
 
@@ -53,3 +82,7 @@ container.addEventListener('click', (e) => {
 		updateSelectedCount();
 	}
 });
+
+//Initial count and total set
+
+updateSelectedCount();
